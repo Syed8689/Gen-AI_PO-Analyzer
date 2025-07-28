@@ -28,9 +28,10 @@ Consider yourself as a IT Cost Optimization specialist, expert is Application po
  
 - PO start Date
 - PO end date
+- PO Quantity and OUM
 - PO signatory
-- PO Quantity 
 - Clause
+- PO Amount
 
  
 Return it in markdown table format with rows: PO Start Date, PO End Date, PO Signatory, PO Quantity, Clause 
