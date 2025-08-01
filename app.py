@@ -28,32 +28,48 @@ def extract_text(file):
 def analyze_po(text, api_key, po_filename):
     po_name = po_filename.replace("_", " ").replace(".pdf", "").replace(".docx", "").strip()
     prompt = f"""
-You are an AI assistant with expertise in IT Cost Optimization and Application Portfolio Rationalization.
+You are an AI assistant specializing in IT Cost Optimization and Application Portfolio Rationalization.
 
-A Purchase Order (PO) has been uploaded. Please extract and return a structured summary using the following fields in Markdown Table format:
+A Purchase Order (PO) document has been uploaded. Extract and return a structured summary using the Markdown Table format with the following headers:
 
 | PO Start Date | PO End Date | Quantity & UOM | PO Price (Incl. GST & Currency) | PO Description | PO Signatory | PO Clause Summary |
-|---------------|-------------|----------------|-----------------------|----------------|---------------|----------------------|
-
-**Field Requirements:**
-
-1. **PO Start Date and PO End Date** – Extract accurately from the PO.
-2. **Quantity & UOM** – Extract numeric quantity and Unit of Measure from the PO.
-3. **PO Price (Incl. GST & Currency)** – Include total price with tax and clearly state the currency (e.g., INR, USD).
-4. **PO Description** – Start with the application/product name (e.g., '{po_name}') followed by module/subscription/service description.
-5. **PO Signatory** – Name of authorized signatory from vendor or purchaser.
-6. **PO Clause Summary** – Present as bullet points numbered 1, 2, 3… Include the following if available:
-   - Payment terms (e.g., 30/45/90 days, penalties)
-   - Early termination rights (e.g., cancel with 45-day notice)
-   - Unlimited usage terms (e.g., license linked to employee count)
-   - License reassignment or transferability
-   - Bundling or co-termination terms
-   - Risk clauses or any non-cancellable condition
-   - If both PO duration and Contract duration are available, clearly distinguish and display both inside this clause summary
-
-Only respond using a clean **Markdown Table** with no HTML tags. No commentary or explanation.
+|---------------|-------------|----------------|-------------------------------|----------------|---------------|----------------------|
 
 ---
+
+**Field Extraction Rules:**
+
+1. **PO Start Date / End Date**  
+   - Identify official PO duration (if multiple are present, choose primary duration or indicate both clearly).  
+
+2. **Quantity & UOM**  
+   - Total quantity and its Unit of Measure (e.g., 340 NOS)
+
+3. **PO Price (Incl. GST & Currency)**  
+   - Mention amount inclusive of tax. Highlight currency clearly: INR or USD.
+
+4. **PO Description**  
+   - Start with the PO name or reference (e.g., 'LinkedIn Sales Navigator')  
+   - Followed by a short explanation of modules or licenses subscribed  
+   - Do **not use <br>**, instead use real line breaks
+
+5. **PO Signatory**  
+   - Extract the **authorized signatory name or title** from the bottom of the PO  
+   - Common format: “For [Company Name]”, followed by a name or designation  
+   - If not found, write “Not Mentioned”
+
+6. **PO Clause Summary**  
+   - Present clauses as numbered bullet points (1, 2, 3...)  
+   - Extract important clauses including:  
+     - Payment terms (e.g., payment within 30/45/90 days, penalties)  
+     - Early termination rights (e.g., customer may terminate with 45-day notice)  
+     - Unlimited usage terms or license transferability  
+     - Risk clauses (non-cancellable, lock-in, penalty clauses)  
+     - Mention if there’s a Contract Duration **separate from PO Duration**  
+   - Keep the summary clean. No <br>. Each point must appear in a new line.
+
+---
+
 Here is the PO content:
 {text}
 """
