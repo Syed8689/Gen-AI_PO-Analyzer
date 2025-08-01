@@ -27,12 +27,12 @@ def extract_text(file):
 # GenAI-powered PO analyzer
 def analyze_po(text, api_key, po_filename):
     po_name = po_filename.replace("_", " ").replace(".pdf", "").replace(".docx", "").strip()
-    prompt = f"""
+   prompt = f"""
 You are an AI assistant specializing in IT Cost Optimization and Application Portfolio Rationalization.
 
 A Purchase Order (PO) document has been uploaded. Extract and return a structured summary using the Markdown Table format with the following headers:
 
-| PO Start Date | PO End Date | Quantity & UOM | PO Price | PO Description | PO Signatory | PO Clause Summary |
+| PO Start Date | PO End Date | Quantity & UOM | PO Price (Incl. GST & Currency) | PO Description | PO Signatory | PO Clause Summary |
 |---------------|-------------|----------------|-------------------------------|----------------|---------------|----------------------|
 
 ---
@@ -45,7 +45,7 @@ A Purchase Order (PO) document has been uploaded. Extract and return a structure
 2. **Quantity & UOM**  
    - Total quantity and its Unit of Measure (e.g., 340 NOS)
 
-3. **PO Price**  
+3. **PO Price (Incl. GST & Currency)**  
    - Mention amount inclusive of tax. Highlight currency clearly: INR or USD.
 
 4. **PO Description**  
@@ -55,7 +55,8 @@ A Purchase Order (PO) document has been uploaded. Extract and return a structure
 
 5. **PO Signatory**  
    - Extract the **authorized signatory name or title** from the bottom of the PO  
-
+   - Common format: “For [Company Name]”, followed by a name or designation  
+   - If not found, write “Not Mentioned”
 
 6. **PO Clause Summary**  
    - Present clauses as numbered bullet points (1, 2, 3...)  
@@ -72,7 +73,6 @@ A Purchase Order (PO) document has been uploaded. Extract and return a structure
 Here is the PO content:
 {text}
 """
-
     url = "https://api.together.xyz/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {api_key}",
