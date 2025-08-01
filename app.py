@@ -27,8 +27,8 @@ def extract_text(file):
 # GenAI-powered PO analyzer
 def analyze_po(text, api_key, po_filename):
     po_name = po_filename.replace("_", " ").replace(".pdf", "").replace(".docx", "").strip()
-   prompt = f"""
-You are an AI assistant specializing in IT Cost Optimization and Application Portfolio Rationalization.
+    
+    prompt = f"""You are an AI assistant specializing in IT Cost Optimization and Application Portfolio Rationalization.
 
 A Purchase Order (PO) document has been uploaded. Extract and return a structured summary using the Markdown Table format with the following headers:
 
@@ -49,7 +49,7 @@ A Purchase Order (PO) document has been uploaded. Extract and return a structure
    - Mention amount inclusive of tax. Highlight currency clearly: INR or USD.
 
 4. **PO Description**  
-   - Start with the PO name or reference (e.g., 'LinkedIn Sales Navigator')  
+   - Start with the PO name or reference (e.g., '{po_name}')  
    - Followed by a short explanation of modules or licenses subscribed  
    - Do **not use <br>**, instead use real line breaks
 
@@ -59,7 +59,7 @@ A Purchase Order (PO) document has been uploaded. Extract and return a structure
    - If not found, write “Not Mentioned”
 
 6. **PO Clause Summary**  
-   - Present clauses as numbered bullet points (1, 2, 3...)  
+   - Present clauses as numbered bullet points (1, 2, 3…)  
    - Extract important clauses including:  
      - Payment terms (e.g., payment within 30/45/90 days, penalties)  
      - Early termination rights (e.g., customer may terminate with 45-day notice)  
