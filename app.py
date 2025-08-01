@@ -1,18 +1,20 @@
 import streamlit as st
 import requests
-import fitz  # PyMuPDF
-import docx
- 
-st.title("GenAI Observation & Risk Extractor (Free via Together AI)")
- 
+import fitz  # PyMuPDF for PDF parsing
+import docx  # python-docx for DOCX parsing
+
+st.title("GenAI-Based PO Analyzer for Application Portfolio Rationalization (Phase 1)")
+
+# Load API key
 together_api_key = st.secrets.get("TOGETHER_API_KEY")
- 
 if not together_api_key:
-    st.error("❌ Together AI API key not found. Please add it under Streamlit Secrets.")
+    st.error("❌ API key not found. Please add it in Streamlit Secrets.")
     st.stop()
- 
-uploaded_file = st.file_uploader("Upload a PDF or DOCX file", type=["pdf", "docx"])
- 
+
+# Upload PO File
+uploaded_file = st.file_uploader("📤 Upload a PO file (PDF or DOCX)", type=["pdf", "docx"])
+
+# File text extraction
 def extract_text(file):
     if file.name.lower().endswith(".pdf"):
         doc = fitz.open(stream=file.read(), filetype="pdf")
@@ -21,24 +23,34 @@ def extract_text(file):
         doc = docx.Document(file)
         return "\n".join(p.text for p in doc.paragraphs)
     return ""
- 
-def analyze_text_with_together(text, api_key):
-    prompt = f"""
-Consider yourself as a IT Cost Optimization specialist, expert is Application portfloio rationalization. Based on Purchase Orders and Sales Order documents uploaded, extract:
- 
-- PO start Date
-- PO end date
-- PO Quantity and OUM
-- PO signatory
-- Clause
-- PO Amount
 
- 
-Return it in markdown table format with rows: PO Start Date, PO End Date, PO Signatory, PO Quantity, Clause 
- 
-Text to analyze:
+# Call Together AI to analyze PO
+def analyze_po(text, api_key):
+    prompt = f"""
+You are an AI assistant with expertise in IT Cost Optimization and Application Portfolio Rationalization.
+
+A user has uploaded a Purchase Order (PO) or a Sales Order (SO). Extract and return the following structured information in a markdown table:
+
+- PO Start Date  
+- PO End Date  
+- PO Quantity and Unit of Measure (UOM)  
+- PO Total Price (including GST if available)  
+- PO Description (modules, services, licenses)  
+- PO Signatory  
+- PO Clauses (summarize clearly, highlight risks and special terms such as):  
+  • Payment terms (e.g., payment within 30/45/90 days or fines if delayed)  
+  • Cancellation clauses (e.g., customer may terminate with 45 days notice)  
+  • Unlimited usage terms based on employee base  
+  • License transferability or bundling  
+
+Respond **only** with a Markdown Table using the following columns:
+| PO Start Date | PO End Date | Quantity & UOM | PO Price (Incl. GST) | PO Description | PO Signatory | PO Clauses Summary |
+|---------------|-------------|----------------|-----------------------|----------------|---------------|----------------------|
+
+Here is the PO content:
 {text}
 """
+
     url = "https://api.together.xyz/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -51,19 +63,21 @@ Text to analyze:
             {"role": "user", "content": prompt}
         ],
         "temperature": 0.3,
-        "max_tokens": 1024
+        "max_tokens": 2048
     }
-    res = requests.post(url, headers=headers, json=payload)
-    if res.status_code == 200:
-        return res.json()["choices"][0]["message"]["content"]
+
+    response = requests.post(url, headers=headers, json=payload)
+    if response.status_code == 200:
+        return response.json()["choices"][0]["message"]["content"]
     else:
-        return f"❌ Error: {res.status_code} - {res.text}"
- 
+        return f"❌ Error {response.status_code}: {response.text}"
+
+# Execution
 if uploaded_file:
-    with st.spinner("Extracting and analyzing..."):
+    with st.spinner("🔍 Analyzing PO for key terms and clauses..."):
         text = extract_text(uploaded_file)
         if not text.strip():
-            st.error("❌ No readable text found in the document.")
+            st.error("❌ No readable text found in the uploaded file.")
         else:
-            output = analyze_text_with_together(text, together_api_key)
-            st.markdown(output)
+            result = analyze_po(text, together_api_key)
+            st.markdown(result)
