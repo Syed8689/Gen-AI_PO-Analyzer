@@ -32,7 +32,7 @@ You are an AI assistant specializing in IT Cost Optimization and Application Por
 
 A Purchase Order (PO) document has been uploaded. Extract and return a structured summary using the Markdown Table format with the following headers:
 
-| PO Start Date | PO End Date | Quantity & UOM | PO Price (Incl. GST & Currency) | PO Description | PO Signatory | PO Clause Summary |
+| PO Start Date | PO End Date | Quantity & UOM | PO Price | PO Description | PO Signatory | PO Clause Summary |
 |---------------|-------------|----------------|-------------------------------|----------------|---------------|----------------------|
 
 ---
