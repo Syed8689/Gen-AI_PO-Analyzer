@@ -71,7 +71,10 @@ A Purchase Order (PO) has been uploaded. Extract and return a structured summary
      - Early Termination Rights (e.g., customer may terminate the PO or license with 45 days' notice)
      - Unlimited Usage Terms (e.g., license is unlimited based on employee headcount)
      - Risk Clauses (e.g., PO is non-cancellable, has lock-in, or penalties)
-
+**Guidelines**: 
+- Throughly analyse the document and do not skip
+- Ensure each columns generates accurate results from the PO
+- Output all column details
 ---
 
 Do not use <br> anywhere in the output. Output must be formatted as a Markdown Table only with no commentary.
