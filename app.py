@@ -5,13 +5,13 @@ import docx  # For DOCX files
 
 st.title("🧾 GenAI-Based PO Analyzer (Phase 1) – Application Portfolio Rationalization")
 
-# Load Together AI API key
+# Load Together AI API key from Streamlit Secrets
 together_api_key = st.secrets.get("TOGETHER_API_KEY")
 if not together_api_key:
     st.error("❌ API key not found. Please add it under Streamlit Secrets.")
     st.stop()
 
-# Upload PO File
+# File upload
 uploaded_file = st.file_uploader("📤 Upload a PO file (PDF or DOCX)", type=["pdf", "docx"])
 
 # Extract text from PDF or DOCX
@@ -30,60 +30,58 @@ def analyze_po(text, api_key, po_filename):
 
     prompt = f"""You are a GenAI assistant specializing in IT Cost Optimization and Application Portfolio Rationalization.
 
-A Purchase Order (PO) document has been uploaded. Extract and return a structured summary in **Markdown Table Format** with the following headers:
+A Purchase Order (PO) has been uploaded. Extract and return a structured summary in **Markdown Table Format** with the following headers:
 
-| PO Start Date | PO End Date | Quantity & UOM | PO Price | PO Description | PO Signatory | PO Contract Tenure | PO Clause Summary |
-|---------------|-------------|----------------|----------|----------------|--------------|---------------------|-------------------|
+| PO Start Date | PO End Date | Quantity & UOM | PO Price (Incl. GST & Currency) | PO Description | PO Signatory | PO Contract Tenure | PO Clause Summary |
+|---------------|-------------|----------------|----------------------------------|----------------|--------------|---------------------|-------------------|
 
 ---
 
 **Field Extraction Rules:**
 
-1. **PO Start Date / PO End Date**
+1. **PO Start Date / PO End Date**  
    - These are the official PO validity dates.
    - If multiple dates are found, prioritize main PO validity dates.
 
-2. **Quantity & UOM**
-   - Total number with unit (e.g., 340 NOS)
+2. **Quantity & UOM**  
+   - E.g., 340 NOS
 
-3. **PO Price (Incl. GST & Currency)**
-   - Mention the full amount including taxes.
-   - Clearly state the currency: USD or INR (e.g., USD 1,000 or INR 12,50,000)
+3. **PO Price (Incl. GST & Currency)**  
+   - Mention the total value including tax and state currency clearly (e.g., USD 1,000 or INR 12,50,000).
 
-4. **PO Description**
-   - Start with the application/product name (e.g., '{po_name}')
-   - Then add a short summary of modules, services, licenses covered.
-   - Do not use <br>. Use plain markdown line breaks if needed.
+4. **PO Description**  
+   - Start with the name of the PO or application (e.g., '{po_name}').  
+   - Then add a short explanation of the modules or licenses subscribed.  
+   - Avoid using <br>. Use real markdown newlines if needed.
 
-5. **PO Signatory**
-   - Extract name or designation of the person signing the PO.
-   - Usually found under “For [Company Name]”. If not present, write "Not Mentioned" — though it's typically included.
+5. **PO Signatory**  
+   - Extract the name/title of the authorized signatory from the PO.  
+   - This is usually found near “For [Company Name]” at the bottom of the document.
 
-6. **PO Contract Tenure**
-   - Extract Contract Start and End Dates (if explicitly mentioned).
-   - Calculate duration (e.g., "3-year contract").
-   - If contract duration is not found, write: “Contract tenure not mentioned”.
+6. **PO Contract Tenure**  
+   - Extract Contract Start Date and Contract End Date (if available).  
+   - Calculate duration (e.g., “3-year contract”)  
+   - If contract duration isn't explicitly written, mention “Contract tenure not mentioned”.
 
-7. **PO Clause Summary**
-   - Present this section as numbered bullet points (1, 2, 3...).
-   - Extract from any “PO Terms”, “Special Terms”, “General Terms” sections.
-   - Include important clauses such as:
-     - Payment Terms (e.g., payment must be made within 30/45/90 days or penalties apply)
-     - Early Termination Rights (e.g., PO/licensing can be cancelled with 45-day notice)
-     - Unlimited Usage or transfer clauses
-     - Risk clauses: non-cancellable PO, lock-in conditions, penalty provisions
-
----
+7. **PO Clause Summary**  
+   - Present this as bullet points (numbered 1, 2, 3...).  
+   - Extract from any “PO Terms”, “Special Terms”, or “General Terms” section.  
+   - Include any of the following if found:
+     - Payment Terms (e.g., payment must be made within 45 days of PO generation or penalties apply)
+     - Early Termination Rights (e.g., customer may terminate the PO or license with 45 days' notice)
+     - Unlimited Usage Terms (e.g., license is unlimited based on employee headcount)
+     - Risk Clauses (e.g., PO is non-cancellable, has lock-in, or penalties)
 
 **Guidelines:**
 - Thoroughly analyze the entire document and extract data for **all 8 columns**.
 - Do not skip or summarize generically.
 - Return only a Markdown Table.
 - Remove all <br> from output.
-
 ---
 
-Here is the PO text:
+Do not use <br> anywhere in the output. Output must be formatted as a Markdown Table only with no commentary.
+
+Here is the extracted PO content:
 {text}
 """
 
@@ -104,12 +102,11 @@ Here is the PO text:
 
     response = requests.post(url, headers=headers, json=payload)
     if response.status_code == 200:
-        content = response.json()["choices"][0]["message"]["content"]
-        return content.replace("<br>", " ").strip()
+        return response.json()["choices"][0]["message"]["content"]
     else:
         return f"❌ Error {response.status_code}: {response.text}"
 
-# Run app
+# Trigger analysis after upload
 if uploaded_file:
     with st.spinner("🔍 Analyzing uploaded PO for contract terms and risks..."):
         text = extract_text(uploaded_file)
