@@ -97,7 +97,7 @@ Here is the extracted PO content:
 
     response = requests.post(url, headers=headers, json=payload)
     if response.status_code == 200:
-        return response.json()["choices"][0]["message"]["content"]
+        return response.json()["choices"][0]["message"]["content"].replace("<br>"," ")
     else:
         return f"❌ Error {response.status_code}: {response.text}"
 
